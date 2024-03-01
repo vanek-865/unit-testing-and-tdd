@@ -1,14 +1,23 @@
 package com.acme.banking.dbo.service;
 
 import com.acme.banking.dbo.domain.Account;
-import com.acme.banking.dbo.domain.Cash;
 import com.acme.banking.dbo.domain.Client;
 
 import java.util.Collection;
 
 public class Processing {
+    private ClientRepository clientRepository;
+    private CashApi cash;
+
+    public Processing(ClientRepository clientRepository, CashApi cash) {
+        this.clientRepository = clientRepository;
+        this.cash = cash;
+    }
+
+
     public Client createClient(String name) {
-        return null; //TODO
+        var client = new Client(clientRepository.generateId(), name);
+        return clientRepository.save(client);
     }
 
     public Collection<Account> getAccountsByClientId(int clientId) {
@@ -20,6 +29,6 @@ public class Processing {
     }
 
     public void cash(double amount, int fromAccountId) {
-        Cash.log(amount, fromAccountId);
+        cash.log(amount, fromAccountId);
     }
 }

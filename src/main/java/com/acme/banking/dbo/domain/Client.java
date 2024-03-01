@@ -41,4 +41,23 @@ public class Client {
     public Optional<Account> getAccount(int accountId){
         return accounts.stream().filter(a -> a.getId() == accountId).findAny();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Client client)) return false;
+
+        if (id != client.id) return false;
+        if (!name.equals(client.name)) return false;
+        return accounts.equals(client.accounts);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + name.hashCode();
+        result = 31 * result + accounts.hashCode();
+        return result;
+    }
+
 }

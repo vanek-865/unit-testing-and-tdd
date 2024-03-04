@@ -30,4 +30,17 @@ public class SavingAccount implements Account {
     public Client getClient() {
         return client;
     }
+
+    public void withDraw(double amount) {
+        if (amount < 0 ) throw new IllegalArgumentException("Amount is incorrect");
+        //if (this.getAmount() - amount < 0d) throw new IllegalStateException("Not many");
+        if (Double.compare(this.getAmount(), amount) < 0) throw new IllegalStateException("Not many");
+
+        this.amount -= amount;
+    }
+
+    public void addAmount(double amount){
+        if (amount < 0 ) throw new IllegalArgumentException("Amount is incorrect");
+        this.amount += amount;
+    }
 }

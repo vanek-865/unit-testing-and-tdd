@@ -39,7 +39,7 @@ public class Processing {
         if (toAccount == null) throw new IllegalStateException("To account is null");
 
         fromAccount.withDraw(amount);
-        toAccount.addAmount(amount);
+        toAccount.deposit(amount);
 
         savingAccountRepository.save(fromAccount);
         savingAccountRepository.save(toAccount);

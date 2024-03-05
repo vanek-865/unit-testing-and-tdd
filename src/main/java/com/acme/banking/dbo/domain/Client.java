@@ -60,4 +60,7 @@ public class Client {
         return result;
     }
 
+    public String getReportString() {
+        return null;
+    }
 }

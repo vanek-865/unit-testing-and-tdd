@@ -39,8 +39,12 @@ public class SavingAccount implements Account {
         this.amount -= amount;
     }
 
-    public void addAmount(double amount){
+    public void deposit(double amount){
         if (amount < 0 ) throw new IllegalArgumentException("Amount is incorrect");
         this.amount += amount;
+    }
+
+    public String getReportString(){
+        return null;
     }
 }

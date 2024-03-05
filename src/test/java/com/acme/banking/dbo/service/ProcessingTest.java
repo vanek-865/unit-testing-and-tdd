@@ -48,65 +48,39 @@ class ProcessingTest {
     }
 
     @Test
-    void shouldTransferMany() {
+    void shouldTransferMoney() {
         var dummyClientRepository = mock(ClientRepository.class);
         var mockSavingAccountRepository = mock(SavingAccountRepository.class);
+        var mockFromSavingAccount = mock(SavingAccount.class);
+        var mockToSavingAccount = mock(SavingAccount.class);
         int fromAccountId = 1;
         int toAccountId = 2;
-        double amount = 3.5d;
+        double amount = 1.0d;
 
-        Client client = new Client(1, "Name");
-        SavingAccount fromAccount = new SavingAccount(fromAccountId, client, amount);
-        when(mockSavingAccountRepository.getAccountById(fromAccountId)).thenReturn(fromAccount);
+        when(mockSavingAccountRepository.getAccountById(fromAccountId)).thenReturn(mockFromSavingAccount);
 
-        SavingAccount toAccount = new SavingAccount(toAccountId, client, amount);
-        when(mockSavingAccountRepository.getAccountById(toAccountId)).thenReturn(toAccount);
+        when(mockSavingAccountRepository.getAccountById(toAccountId)).thenReturn(mockToSavingAccount);
 
         var sut = new Processing(dummyClientRepository, Cash::log, mockSavingAccountRepository);
 
         sut.transfer(fromAccountId, toAccountId, amount);
 
-        assertEquals(0d, fromAccount.getAmount());
-        assertEquals(7d, toAccount.getAmount());
+        verify(mockFromSavingAccount).withDraw(amount);
+        verify(mockToSavingAccount).deposit(amount);
 
-        verify(mockSavingAccountRepository).save(fromAccount);
-        verify(mockSavingAccountRepository).save(toAccount);
-
-    }
-
-    @Test
-    public void shouldNotTransferManyWhenTransferAmountMoreAccountAmount(){
-
-        var dummyClientRepository = mock(ClientRepository.class);
-        var mockSavingAccountRepository = mock(SavingAccountRepository.class);
-        int fromAccountId = 1;
-        int toAccountId = 2;
-        double amount = 3.5d;
-        double incorrectAmount = 5.5d;
-
-        Client client = new Client(1, "Name");
-        SavingAccount fromAccount = new SavingAccount(fromAccountId, client, amount);
-        when(mockSavingAccountRepository.getAccountById(fromAccountId)).thenReturn(fromAccount);
-
-        SavingAccount toAccount = new SavingAccount(toAccountId, client, amount);
-        when(mockSavingAccountRepository.getAccountById(toAccountId)).thenReturn(toAccount);
-
-        var sut = new Processing(dummyClientRepository, Cash::log, mockSavingAccountRepository);
-
-        assertThrows(IllegalStateException.class, () -> sut.transfer(fromAccountId, toAccountId, incorrectAmount));
-
-        verify(mockSavingAccountRepository, never()).save(any());
+        verify(mockSavingAccountRepository).save(mockFromSavingAccount);
+        verify(mockSavingAccountRepository).save(mockToSavingAccount);
 
     }
 
     @Test
-    public void shouldNotTransferManyWhenAccountIdIncorrect(){
+    public void shouldNotTransferMoneyWhenAccountIdIncorrect(){
 
         var dummyClientRepository = mock(ClientRepository.class);
         var dummySavingAccountRepository = mock(SavingAccountRepository.class);
         int incorrectAccountId = -1;
         int correctAccountId = 1;
-        double amount = 3.5d;
+        double amount = 1.0d;
 
         var sut = new Processing(dummyClientRepository, Cash::log, dummySavingAccountRepository);
 
@@ -118,28 +92,25 @@ class ProcessingTest {
     }
 
     @Test
-    public void shouldNotTransferManyWhenAccountNotFound(){
+    public void shouldNotTransferMoneyWhenAccountNotFound(){
 
         var dummyClientRepository = mock(ClientRepository.class);
         var mockSavingAccountRepository = mock(SavingAccountRepository.class);
+        var mockSavingAccount = mock(SavingAccount.class);
         int fromAccountId = 1;
-        int incorrectFromAccountId = 5;
-        int toAccountId = 2;
-        int incorrectToAccountId = 7;
-        double amount = 3.5d;
+        int notFoundFromAccountId = 2;
+        int toAccountId = 3;
+        int notFoundToAccountId = 4;
+        double amount = 1.0d;
 
-        Client client = new Client(1, "Name");
-        SavingAccount fromAccount = new SavingAccount(fromAccountId, client, amount);
-        when(mockSavingAccountRepository.getAccountById(fromAccountId)).thenReturn(fromAccount);
-
-        SavingAccount toAccount = new SavingAccount(toAccountId, client, amount);
-        when(mockSavingAccountRepository.getAccountById(toAccountId)).thenReturn(toAccount);
+        when(mockSavingAccountRepository.getAccountById(fromAccountId)).thenReturn(mockSavingAccount);
+        when(mockSavingAccountRepository.getAccountById(toAccountId)).thenReturn(mockSavingAccount);
 
         var sut = new Processing(dummyClientRepository, Cash::log, mockSavingAccountRepository);
 
         assertAll(
-                ()-> assertThrows(IllegalStateException.class, () -> sut.transfer(fromAccountId, incorrectToAccountId, amount)),
-                ()-> assertThrows(IllegalStateException.class, () -> sut.transfer(incorrectFromAccountId, toAccountId, amount))
+                ()-> assertThrows(IllegalStateException.class, () -> sut.transfer(fromAccountId, notFoundToAccountId, amount)),
+                ()-> assertThrows(IllegalStateException.class, () -> sut.transfer(notFoundFromAccountId, toAccountId, amount))
         );
 
     }

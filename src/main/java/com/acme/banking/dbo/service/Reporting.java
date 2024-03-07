@@ -2,8 +2,10 @@ package com.acme.banking.dbo.service;
 
 import com.acme.banking.dbo.domain.Account;
 import com.acme.banking.dbo.domain.Branch;
+import com.acme.banking.dbo.domain.SavingAccount;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -14,45 +16,77 @@ public class Reporting {
      */
     public String getReport(Branch rootBranch) {
 
+        return getReport(rootBranch, null);
+    }
+
+    public String getReport(Branch rootBranch, String printId) {
+
         if (rootBranch == null) return "# BRANCH is empty";
         var result = new ArrayList<String>();
         var accountResult = new ArrayList<String>();
-        var totalAmount = 0d;
+        AtomicReference<Double> totalAmount = new AtomicReference<>(0d);
+        var resultChildBranch = new ArrayList<String>();
 
-        if (rootBranch.getAccounts() != null || !rootBranch.getAccounts().isEmpty()) {
-            totalAmount = accountResult(rootBranch, accountResult);
+        if (printId == null) {
+            printId = String.valueOf(rootBranch.getId());
+        } else {
+            printId += "-" + String.valueOf(rootBranch.getId());
         }
 
-        if (rootBranch.getChildren() != null || !rootBranch.getChildren().isEmpty()) {
-
+        if (rootBranch.getAccounts() != null ) {
+            accountResult(rootBranch, accountResult);
         }
-        result.add("# BRANCH 1 (" + totalAmount + ")");
+
+        if (rootBranch.getChildren() != null ) {
+            String finalPrintId = printId;
+            rootBranch.getChildren().forEach((b) -> {
+                resultChildBranch.add(getReport(b, finalPrintId));
+                totalAmount.updateAndGet(v -> (v + branchAmount(b)));
+            });
+        }
+        totalAmount.updateAndGet(v -> (v + branchAmount(rootBranch)));
+
+        if (printId.equals(String.valueOf(rootBranch.getId()))) {
+            result.add("# BRANCH " + printId + " (" + totalAmount + ")");
+        } else {
+            result.add("  # BRANCH " + printId + " (" + totalAmount + ")");
+        }
+
         result.addAll(accountResult);
+        result.addAll(resultChildBranch);
 
         return getResult(result);
     }
 
-    private double accountResult(Branch rootBranch, ArrayList<String> accountResult) {
-        var x = rootBranch.getAccounts().stream().collect(groupingBy(Account::getClient));
-        AtomicReference<Double> totalAmount = new AtomicReference<>(0d);
+    private void accountResult(Branch rootBranch, ArrayList<String> accountResult) {
 
+        var x = rootBranch.getAccounts().stream().collect(groupingBy(Account::getClient));
         x.entrySet().forEach(
-                (it)->{
+                (it) -> {
                     accountResult.add(it.getKey().getReportString());
                     it.getValue().forEach((acc) -> {
                         accountResult.add(acc.getReportString());
-                        totalAmount.updateAndGet(v -> (v + acc.getAmount()));
                     });
                 }
         );
+    }
+
+    private double branchAmount(Branch rootBranch) {
+
+        AtomicReference<Double> totalAmount = new AtomicReference<>(0d);
+
+        if (rootBranch.getAccounts() == null) return 0d;
+
+        rootBranch.getAccounts().forEach(
+                (it) -> totalAmount.updateAndGet(v -> v + it.getAmount()));
 
         return totalAmount.get();
     }
 
-    public String getResult(ArrayList<String> result){
+    private String getResult(ArrayList<String> result) {
         StringBuilder builder = new StringBuilder();
 
-        result.forEach((it)->{
+        result.forEach((it) -> {
             builder.append(it);
         });
 

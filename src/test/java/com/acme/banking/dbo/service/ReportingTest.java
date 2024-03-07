@@ -26,7 +26,6 @@ class ReportingTest {
 
     @Mock
     Branch childBranch;
-    Branch nullBranch = null;
 
     @Mock
     SavingAccount rootBranchAccount;
@@ -72,7 +71,7 @@ class ReportingTest {
     @Test
     public void shouldReturnEmptyReportWhenBranchIsNull() {
 
-        assertEquals("# BRANCH is empty", sut.getReport(nullBranch));
+        assertEquals("# BRANCH is empty", sut.getReport(null));
     }
 
     @Test

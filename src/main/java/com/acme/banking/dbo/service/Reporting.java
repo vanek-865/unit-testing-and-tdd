@@ -2,10 +2,8 @@ package com.acme.banking.dbo.service;
 
 import com.acme.banking.dbo.domain.Account;
 import com.acme.banking.dbo.domain.Branch;
-import com.acme.banking.dbo.domain.SavingAccount;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -33,11 +31,11 @@ public class Reporting {
             printId += "-" + String.valueOf(rootBranch.getId());
         }
 
-        if (rootBranch.getAccounts() != null ) {
+        if (rootBranch.getAccounts() != null) {
             accountResult(rootBranch, accountResult);
         }
 
-        if (rootBranch.getChildren() != null ) {
+        if (rootBranch.getChildren() != null) {
             String finalPrintId = printId;
             rootBranch.getChildren().forEach((b) -> {
                 resultChildBranch.add(getReport(b, finalPrintId));
